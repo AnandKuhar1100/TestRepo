@@ -8,6 +8,7 @@ on:
 
 jobs:
   check-label:
+    if: contains(github.event.pull_request.labels.*.name, 'draft')
     runs-on: ubuntu-latest
     
     steps:
