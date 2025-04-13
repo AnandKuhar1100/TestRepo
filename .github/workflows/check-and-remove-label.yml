@@ -19,26 +19,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Check for "Good to Merge" label
-        if: github.event_name == 'pull_request' && github.event.action == 'labeled'  # Run this step only for PR events
-        run: |
-          # Fetch the PR labels
-          PR_LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels")
-
-          # Print the labels for debugging purposes
-          echo "PR labels: $PR_LABELS"
-
-          # Convert labels to lowercase and check for 'good to merge' label (case-insensitive check)
-          PR_LABELS_LOWER=$(echo "$PR_LABELS" | tr '[:upper:]' '[:lower:]')
-          
-          if [[ "$PR_LABELS_LOWER" != *"good to merge"* ]]; then
-            echo "PR does not have the 'Good to Merge' label, failing the workflow."
-            exit 1  # Fail the job to block the merge
-          else
-            echo "PR has the 'Good to Merge' label, passing the workflow."
-          fi
-
       - name: Remove "Good to Merge" label from the PR
         if: github.event_name == 'push'  # Run this step only for push events
         run: |
@@ -59,3 +39,24 @@ jobs:
             "https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/labels/good%20to%20merge"
 
           echo "Removed 'Good to Merge' label from PR #$PR_NUMBER"
+
+      - name: Check for "Good to Merge" label
+        if: github.event_name == 'pull_request' && github.event.action == 'labeled'  # Run this step only for PR events
+        run: |
+          # Fetch the PR labels
+          PR_LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels")
+
+          # Print the labels for debugging purposes
+          echo "PR labels: $PR_LABELS"
+
+          # Convert labels to lowercase and check for 'good to merge' label (case-insensitive check)
+          PR_LABELS_LOWER=$(echo "$PR_LABELS" | tr '[:upper:]' '[:lower:]')
+          
+          if [[ "$PR_LABELS_LOWER" != *"good to merge"* ]]; then
+            echo "PR does not have the 'Good to Merge' label, failing the workflow."
+            exit 1  # Fail the job to block the merge
+          else
+            echo "PR has the 'Good to Merge' label, passing the workflow."
+          fi
+
