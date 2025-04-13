@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main
-    types: [labeled, opened, edited, synchronize]  # Trigger on PR label changes, PR opened, etc.
+    types: [labeled]  # Trigger on PR label changes, PR opened, etc.
 
 jobs:
   check-label:
