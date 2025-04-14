@@ -22,10 +22,10 @@ jobs:
         # with:
         #   ref: ${{ github.head_ref }}  # Checkout the correct PR branch
 
-      - name: Print Data
-        run: |
-          echo "Found github event name: ${{ github.event_name }}"
-          echo "Found github.event.action: ${{ github.event.action }}"
+      # - name: Print Data
+      #   run: |
+      #     echo "Found github event name: ${{ github.event_name }}"
+      #     echo "Found github.event.action: ${{ github.event.action }}"
 
 
       # Step 2: Remove "Good to Merge" label when a commit is pushed
