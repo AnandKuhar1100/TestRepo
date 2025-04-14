@@ -40,7 +40,7 @@ jobs:
           echo "Found PR number: $PR_NUMBER"
 
           # Remove the "Good to Merge" label from the PR
-          curl -s -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          curl -s -X DELETE -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/labels/good%20to%20merge"
 
           echo "Removed 'Good to Merge' label from PR #$PR_NUMBER"
@@ -48,6 +48,6 @@ jobs:
       # Step 2: Debugging step to confirm the label removal action was triggered (optional)
       - name: Debugging (Check if Label Removed)
         run: |
-          PR_LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          PR_LABELS=$(curl -s -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels")
           echo "PR labels: $PR_LABELS"
