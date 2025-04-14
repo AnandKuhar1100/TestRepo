@@ -20,6 +20,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Print data
+        run: |
+          # Get PR data
+          echo "github.event_name ${{ github.event_name }}"
+          echo "github.event.action ${{ github.event.action }}"
+          echo "check for label ${{ contains(github.event.pull_request.labels.*.name, 'Good to Merge') }}"
+
       # Step 1: Remove "Good to Merge" label when a commit is pushed or PR is synchronized
       - name: Remove "Good to Merge" label from the PR
         if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'synchronize')  # Run this for both commit push and synchronize events
