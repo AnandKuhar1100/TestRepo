@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main  # Specify the branch you want to protect (e.g., `main`, `staging`)
-    types: [labeled, edited, synchronize]  # Trigger on PR label changes, PR opened, etc.
+    types: [labeled]  # Trigger on PR label changes, PR opened, etc.
   push:
     branches:
       - main  # Trigger on push to the `main` branch (or your target branch)
