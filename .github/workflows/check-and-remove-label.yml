@@ -18,8 +18,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.head_ref }}
 
       - name: Remove "Good to Merge" label from the PR
         if: github.event_name == 'push'  # Run this step only for push events
