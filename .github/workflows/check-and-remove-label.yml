@@ -22,6 +22,10 @@ jobs:
         # with:
         #   ref: ${{ github.head_ref }}  # Checkout the correct PR branch
 
+      - name: Print Data
+        echo "Found github event name: $github.event_name"
+        echo "Found github.event.action: $github.event.action"
+
       # Step 2: Remove "Good to Merge" label when a commit is pushed
       - name: Remove "Good to Merge" label from the PR
         if: github.event_name == 'push' && contains(github.event.pull_request.labels.*.name, 'Good to Merge')
@@ -50,7 +54,7 @@ jobs:
 
       # Step 3: Check for "Good to Merge" label when label is added to PR
       - name: Check for "Good to Merge" label
-        if: github.event.action == 'labeled'  # Run only for PR events
+        if: github.event_name == 'pull_request' && github.event.action == 'labeled'  # Run only for PR events
         run: |
           # Fetch the PR labels
           PR_LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
