@@ -1,4 +1,4 @@
-name: Check and Remove "Good to Merge" Label
+name: Remove "Good to Merge" Label
 
 on:
   pull_request:
