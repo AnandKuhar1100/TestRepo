@@ -14,11 +14,15 @@ on:
 jobs:
   check-remove-label:
     runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
 
+    steps:
+      # Step 1: Checkout the PR branch (to avoid detached HEAD state)
+      - name: Checkout PR branch
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}  # Checkout the correct PR branch
+
+      # Step 2: Remove "Good to Merge" label when a commit is pushed
       - name: Remove "Good to Merge" label from the PR
         if: github.event_name == 'push'  # Run this step only for push events
         run: |
@@ -40,8 +44,9 @@ jobs:
 
           echo "Removed 'Good to Merge' label from PR #$PR_NUMBER"
 
+      # Step 3: Check for "Good to Merge" label when label is added to PR
       - name: Check for "Good to Merge" label
-        if: github.event_name == 'pull_request' && github.event.action == 'labeled'  # Run this step only for PR events
+        if: github.event_name == 'pull_request' && github.event.action == 'labeled'  # Run only for PR events
         run: |
           # Fetch the PR labels
           PR_LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
@@ -52,11 +57,10 @@ jobs:
 
           # Convert labels to lowercase and check for 'good to merge' label (case-insensitive check)
           PR_LABELS_LOWER=$(echo "$PR_LABELS" | tr '[:upper:]' '[:lower:]')
-          
+
           if [[ "$PR_LABELS_LOWER" != *"good to merge"* ]]; then
             echo "PR does not have the 'Good to Merge' label, failing the workflow."
             exit 1  # Fail the job to block the merge
           else
             echo "PR has the 'Good to Merge' label, passing the workflow."
           fi
-
