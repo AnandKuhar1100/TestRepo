@@ -50,7 +50,7 @@ jobs:
 
       # Step 3: Check for "Good to Merge" label when label is added to PR
       - name: Check for "Good to Merge" label
-        if: github.event_name == 'pull_request' && github.event.action == 'labeled'  # Run only for PR events
+        if: github.event.action == 'labeled'  # Run only for PR events
         run: |
           # Fetch the PR labels
           PR_LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
