@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main  # Specify the branch you want to protect (e.g., `main`, `staging`)
-    types: [labeled, synchronize]  # Trigger on PR label changes, PR opened, etc.
+    types: [synchronize]  # Trigger on PR label changes, PR opened, etc.
   push:
     branches:
       - main  # Trigger on push to the `main` branch (or your target branch)
@@ -25,9 +25,6 @@ jobs:
         if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'synchronize')  # Run this for both commit push and synchronize events
         run: |
           # Get the PR number associated with the commit
-          # PR_NUMBER=$(curl -s -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
-          #   "https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" \
-          #   | jq '.[0].number')
           PR_NUMBER=${{ github.event.pull_request.number }}
 
           echo "PR number: $PR_NUMBER"
@@ -44,10 +41,3 @@ jobs:
             "https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/labels/good%20to%20merge"
 
           echo "Removed 'Good to Merge' label from PR #$PR_NUMBER"
-
-      # Step 2: Debugging step to confirm the label removal action was triggered (optional)
-      - name: Debugging (Check if Label Removed)
-        run: |
-          PR_LABELS=$(curl -s -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels")
-          echo "PR labels: $PR_LABELS"
