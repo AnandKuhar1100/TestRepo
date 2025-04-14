@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main  # Specify the branch you want to protect (e.g., `main`, `staging`)
-    types: [labeled]  # Trigger on PR label changes, PR opened, etc.
+    types: [labeled, synchronize]  # Trigger on PR label changes, PR opened, etc.
   push:
     branches:
       - main  # Trigger on push to the `main` branch (or your target branch)
@@ -29,27 +29,27 @@ jobs:
 
 
       # Step 2: Remove "Good to Merge" label when a commit is pushed
-      # - name: Remove "Good to Merge" label from the PR
-      #   if: contains(github.event.pull_request.labels.*.name, 'Good to Merge')
-      #   # if: github.event_name == 'push'  # Run this step only for push events
-      #   run: |
-      #     # Get the PR associated with the commit
-      #     PR_NUMBER=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-      #       "https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" \
-      #       | jq '.[0].number')
+      - name: Remove "Good to Merge" label from the PR
+        if: contains(github.event.pull_request.labels.*.name, 'Good to Merge')
+        # if: github.event_name == 'push'  # Run this step only for push events
+        run: |
+          # Get the PR associated with the commit
+          PR_NUMBER=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" \
+            | jq '.[0].number')
 
-      #     if [ -z "$PR_NUMBER" ]; then
-      #       echo "No pull request found for this commit."
-      #       exit 0
-      #     fi
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No pull request found for this commit."
+            exit 0
+          fi
 
-      #     echo "Found PR number: $PR_NUMBER"
+          echo "Found PR number: $PR_NUMBER"
 
-      #     # Remove the "Good to Merge" label from the PR
-      #     curl -s -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-      #       "https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/labels/good%20to%20merge"
+          # Remove the "Good to Merge" label from the PR
+          curl -s -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/labels/good%20to%20merge"
 
-      #     echo "Removed 'Good to Merge' label from PR #$PR_NUMBER"
+          echo "Removed 'Good to Merge' label from PR #$PR_NUMBER"
 
       # - name: Checkout PR branch
       #   uses: actions/checkout@v2
