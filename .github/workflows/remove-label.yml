@@ -29,7 +29,7 @@ jobs:
 
       # Step 1: Remove "Good to Merge" label when a commit is pushed or PR is synchronized
       - name: Remove "Good to Merge" label from the PR
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'synchronize')  # Run this for both commit push and synchronize events
+        if: contains(github.event.pull_request.labels.*.name, 'Good to Merge')
         run: |
           # Get the PR number associated with the commit
           PR_NUMBER=${{ github.event.pull_request.number }}
