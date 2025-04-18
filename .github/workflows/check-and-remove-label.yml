@@ -84,8 +84,8 @@ jobs:
             "https://api.github.com/repos/${{ github.repository }}/actions/workflows/check-and-remove-label.yml/runs")
 
           # Debugging: Check the raw response
-          echo "Workflow run details:"
-          echo "$runs"
+          # echo "Workflow run details:"
+          # echo "$runs"
 
           # Parse the total count of workflow runs
           run_count=$(echo "$runs" | jq '.total_count // 0')
