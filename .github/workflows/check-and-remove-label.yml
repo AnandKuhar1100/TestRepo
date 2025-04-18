@@ -75,6 +75,56 @@ jobs:
             echo "PR has the 'Good to Merge' label, passing the workflow."
           fi
 
+      # Remove this - Deleting artifacts
+      - name: List and clean up artifacts
+        if: always()
+        run: |
+          echo "Listing current artifacts for check-and-remove-label.yml..."
+          runs=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/check-and-remove-label.yml/runs")
+
+          # Debugging: Check the raw response
+          echo "Workflow run details:"
+          echo "$runs"
+
+          # Parse the total count of workflow runs
+          run_count=$(echo "$runs" | jq '.total_count // 0')
+
+          # Check if run_count is not null or 0
+          if [ "$run_count" -eq 0 ]; then
+            echo "No workflow runs found for check-and-remove-label.yml. Exiting."
+            exit 0
+          fi
+
+          echo "Total workflow runs: $run_count"
+
+          # Set maximum number of artifacts to keep
+          MAX_ARTIFACTS=2
+
+          # Calculate how many to delete
+          if [ "$run_count" -gt "$MAX_ARTIFACTS" ]; then
+            to_delete=$((run_count - MAX_ARTIFACTS))
+            echo "Will delete $to_delete oldest artifacts to maintain maximum of $MAX_ARTIFACTS"
+
+            # Get IDs of oldest artifacts to delete
+            artifact_ids=$(echo "$runs" | jq -r ".artifacts | sort_by(.created_at) | .[0:$to_delete] | .[].id")
+            
+            if [ -z "$artifact_ids" ]; then
+              echo "No artifacts found to delete."
+              exit 0
+            fi
+
+            # Delete each artifact
+            for id in $artifact_ids; do
+              echo "Deleting artifact ID: $id"
+              curl -X DELETE -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$id"
+            done
+          else
+            echo "No cleanup needed. Current count ($run_count) is within the limit."
+          fi
+
       # Remove this
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
