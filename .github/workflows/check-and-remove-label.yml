@@ -98,14 +98,14 @@ jobs:
       - name: Delete artifacts if needed
         run: |
           # Example to delete artifacts (if there are more than 2)
-          ARTIFACTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          ARTIFACTS=$(curl -s -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/actions/artifacts")
 
           # Use jq to process artifacts and delete the oldest
           ARTIFACT_IDS=$(echo "$ARTIFACTS" | jq -r '.artifacts | sort_by(.created_at) | .[0:2] | .[].id')
 
           for ARTIFACT_ID in $ARTIFACT_IDS; do
-            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            curl -X DELETE -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
               "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID"
             echo "Deleted artifact with ID $ARTIFACT_ID"
           done
