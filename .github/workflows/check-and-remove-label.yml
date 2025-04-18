@@ -77,7 +77,7 @@ jobs:
 
       # Remove this
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifact  # Name of the artifact
           path: ./build  # Path to the directory or file you want to upload
