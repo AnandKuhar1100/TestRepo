@@ -86,28 +86,31 @@ jobs:
           # Print the raw output
           echo "Artifacts list: $ARTIFACTS"
 
-          # Save it to a file for inspection
-          echo "$ARTIFACTS" > artifacts.json
+          # Set maximum number of artifacts to keep
+          MAX_ARTIFACTS=2
+
+          # Check the number of artifacts
+          ARTIFACT_COUNT=$(echo "$ARTIFACTS" | jq '.artifacts | length')
+          echo "Number of artifacts: $ARTIFACT_COUNT"
 
           # Check if there are artifacts and if not, print a message
-          if [ "$ARTIFACTS" == "null" ]; then
-            echo "No artifacts found."
+          if [ "$ARTIFACT_COUNT" -le MAX_ARTIFACTS ]; then
+            echo "There are $MAX_ARTIFACTS or fewer artifacts. No need to delete."
+          else
+            echo "There are more than $MAX_ARTIFACTS artifacts. Proceeding with deletion."
           fi
 
-      # Your artifact deletion logic (make sure to adjust as needed)
-      - name: Delete artifacts if needed
+      # Step 3: Delete artifacts if there are more than 2
+      - name: Delete artifacts if more than 2 exist
+        if: steps.list-artifacts.outputs.artifact_count > 2
         run: |
-          # Example to delete artifacts (if there are more than 2)
-          ARTIFACTS=$(curl -s -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts")
-
-          # Use jq to process artifacts and delete the oldest
-          ARTIFACT_IDS=$(echo "$ARTIFACTS" | jq -r '.artifacts | sort_by(.created_at) | .[0:2] | .[].id')
+          # Fetch the list of artifact IDs to delete the oldest ones
+          ARTIFACT_IDS=$(echo "$ARTIFACTS" | jq -r '.artifacts | sort_by(.created_at) | .[2:] | .[].id')
 
           for ARTIFACT_ID in $ARTIFACT_IDS; do
+            echo "Deleting artifact with ID $ARTIFACT_ID"
             curl -X DELETE -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
               "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID"
-            echo "Deleted artifact with ID $ARTIFACT_ID"
           done
 
       # Remove this
