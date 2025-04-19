@@ -1,0 +1,51 @@
+name: Remove "Good to Merge" Label
+
+on:
+  pull_request:
+    branches:
+      - main  # Specify the branch you want to protect (e.g., `main`, `staging`)
+    types: [synchronize]  # Trigger on PR label changes, PR opened, etc.
+  push:
+    branches:
+      - main  # Trigger on push to the `main` branch (or your target branch)
+    paths:
+      - '**/*'  # Trigger on any change in the repository
+
+jobs:
+  remove-label:
+    runs-on: macos-latest
+    
+    steps:
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # For debugging purpose
+      - name: Print data
+        run: |
+          # Get PR data
+          echo "github.event_name ${{ github.event_name }}"
+          echo "github.event.action ${{ github.event.action }}"
+          echo "check for label ${{ contains(github.event.pull_request.labels.*.name, 'Good to Merge') }}"
+
+      # Step 1: Remove "Good to Merge" label when a commit is pushed or PR is synchronized
+      - name: Remove "Good to Merge" label from the PR
+        if: contains(github.event.pull_request.labels.*.name, 'Good to Merge')
+        run: |
+          # Get the PR number associated with the commit
+          PR_NUMBER=${{ github.event.pull_request.number }}
+
+          echo "PR number: $PR_NUMBER"
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No pull request found for this commit."
+            exit 0
+          fi
+
+          echo "Found PR number: $PR_NUMBER"
+
+          # Remove the "Good to Merge" label from the PR
+          curl -s -X DELETE -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/labels/good%20to%20merge"
+
+          echo "Removed 'Good to Merge' label from PR #$PR_NUMBER"

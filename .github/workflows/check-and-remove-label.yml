@@ -13,12 +13,12 @@ on:
 
 jobs:
   check-remove-label:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       # Step 1: Checkout the PR branch (to avoid detached HEAD state)
-      # - name: Checkout PR branch
-      #   uses: actions/checkout@v2
+      - name: Checkout PR branch
+        uses: actions/checkout@v2
         # with:
         #   ref: ${{ github.head_ref }}  # Checkout the correct PR branch
 
@@ -74,3 +74,53 @@ jobs:
           else
             echo "PR has the 'Good to Merge' label, passing the workflow."
           fi
+
+      # Remove this - Deleting artifacts
+      - name: List and delete artifacts if more than 2 exist
+        run: |
+          THRESHOLD=2
+          
+          # Fetch artifact details from GitHub API
+          ARTIFACTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts")
+
+          # Print the raw artifact list for debugging purposes
+          echo "Artifacts list: $ARTIFACTS"
+
+          # Check the number of artifacts
+          ARTIFACT_COUNT=$(echo "$ARTIFACTS" | jq '.artifacts | length')
+          echo "Number of artifacts: $ARTIFACT_COUNT"
+
+          # If there are more than $THRESHOLD artifacts, proceed with deletion
+          if [ "$ARTIFACT_COUNT" -gt $THRESHOLD ]; then
+            echo "There are more than $THRESHOLD artifacts. Proceeding with deletion."
+
+            ITEMS_COUNT_TO_DELETE=$((ARTIFACT_COUNT > THRESHOLD ? ARTIFACT_COUNT - THRESHOLD : 0))
+            echo "ITEMS_COUNT_TO_DELETE: $ITEMS_COUNT_TO_DELETE"
+
+            # Fetch the artifact IDs to delete the oldest ones
+            ARTIFACT_IDS=$(echo "$ARTIFACTS" | jq -r --arg threshold "$ITEMS_COUNT_TO_DELETE" \
+              '.artifacts | sort_by(.created_at) | .[0:($threshold|tonumber)] | .[].id')
+
+            # Ensure ARTIFACT_IDS is not empty
+            if [ -z "$ARTIFACT_IDS" ]; then
+              echo "No artifacts to delete."
+              exit 0
+            fi
+
+            # Loop through the artifact IDs and delete them
+            for ARTIFACT_ID in $ARTIFACT_IDS; do
+              echo "Deleting artifact with ID $ARTIFACT_ID"
+              curl -X DELETE -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+                "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID"
+            done
+          else
+            echo "There are $ARTIFACT_COUNT artifacts, which is less than or equal to the threshold of $THRESHOLD. No need to delete."
+          fi
+
+      # Remove this
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact  # Name of the artifact
+          path: src/views/appA/AppA.js  # Path to the directory or file you want to upload
