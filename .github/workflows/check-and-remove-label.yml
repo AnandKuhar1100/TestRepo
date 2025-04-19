@@ -97,7 +97,7 @@ jobs:
 
             # Fetch the artifact IDs to delete the oldest ones
             ARTIFACT_IDS=$(echo "$ARTIFACTS" | jq -r --arg threshold "$THRESHOLD" \
-              '.artifacts | sort_by(.created_at) | .[$threshold|tonumber:] | .[].id')
+              '.artifacts | sort_by(.created_at) | .[0:$threshold] | .[].id')
 
             # Ensure ARTIFACT_IDS is not empty
             if [ -z "$ARTIFACT_IDS" ]; then
