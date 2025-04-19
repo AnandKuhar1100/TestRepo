@@ -88,17 +88,17 @@ jobs:
           echo "Artifacts list: $ARTIFACTS"
 
           # Set maximum number of artifacts to keep
-          MAX_ARTIFACTS=2
+          # MAX_ARTIFACTS=2
 
           # Check the number of artifacts
           ARTIFACT_COUNT=$(echo "$ARTIFACTS" | jq '.artifacts | length')
           echo "Number of artifacts: $ARTIFACT_COUNT"
 
           # Check if there are artifacts and if not, print a message
-          if [ "$ARTIFACT_COUNT" -le MAX_ARTIFACTS ]; then
-            echo "There are $MAX_ARTIFACTS or fewer artifacts. No need to delete."
+          if [ "$ARTIFACT_COUNT" -le 2 ]; then
+            echo "There are 2 or fewer artifacts. No need to delete."
           else
-            echo "There are more than $MAX_ARTIFACTS artifacts. Proceeding with deletion."
+            echo "There are more than 2 artifacts. Proceeding with deletion."
           fi
 
       # Step 3: Delete artifacts if there are more than 2
