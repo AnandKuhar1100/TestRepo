@@ -101,6 +101,9 @@ jobs:
             echo "There are more than 2 artifacts. Proceeding with deletion."
           fi
 
+          # Output the artifact count so it can be used in the next steps
+          echo "::set-output name=artifact_count::$ARTIFACT_COUNT"
+
       # Step 3: Delete artifacts if there are more than 2
       - name: Delete artifacts if more than 2 exist
         if: ${{ steps.list-artifacts.outputs.artifact_count > 2 }}
