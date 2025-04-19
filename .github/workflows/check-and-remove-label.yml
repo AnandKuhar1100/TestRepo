@@ -13,7 +13,7 @@ on:
 
 jobs:
   check-remove-label:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       # Step 1: Checkout the PR branch (to avoid detached HEAD state)
@@ -110,6 +110,12 @@ jobs:
         run: |
           # Fetch the list of artifact IDs to delete the oldest ones
           ARTIFACT_IDS=$(echo "$ARTIFACTS" | jq -r '.artifacts | sort_by(.created_at) | .[2:] | .[].id')
+
+          # Ensure ARTIFACT_IDS is not empty
+          if [ -z "$ARTIFACT_IDS" ]; then
+            echo "No artifacts to delete."
+            exit 0
+          fi
 
           for ARTIFACT_ID in $ARTIFACT_IDS; do
             echo "Deleting artifact with ID $ARTIFACT_ID"
