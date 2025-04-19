@@ -76,58 +76,42 @@ jobs:
           fi
 
       # Remove this - Deleting artifacts
-      # List current artifacts (for debugging purposes)
-      - name: List current artifacts
-        id: list-artifacts
+      - name: List and delete artifacts if more than 2 exist
         run: |
-          # Fetch artifact details
+          # Fetch artifact details from GitHub API
           ARTIFACTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/actions/artifacts")
 
-          # Print the raw output
+          # Print the raw artifact list for debugging purposes
           echo "Artifacts list: $ARTIFACTS"
-
-          # Set maximum number of artifacts to keep
-          # MAX_ARTIFACTS=2
 
           # Check the number of artifacts
           ARTIFACT_COUNT=$(echo "$ARTIFACTS" | jq '.artifacts | length')
           echo "Number of artifacts: $ARTIFACT_COUNT"
 
-          # Check if there are artifacts and if not, print a message
-          if [ "$ARTIFACT_COUNT" -le 2 ]; then
-            echo "There are 2 or fewer artifacts. No need to delete."
-          else
+          # If there are more than 2 artifacts, proceed with deletion
+          if [ "$ARTIFACT_COUNT" -gt 2 ]; then
             echo "There are more than 2 artifacts. Proceeding with deletion."
+
+            # Fetch the artifact IDs to delete the oldest ones
+            ARTIFACT_IDS=$(echo "$ARTIFACTS" | jq -r '.artifacts | sort_by(.created_at) | .[2:] | .[].id')
+
+            # Ensure ARTIFACT_IDS is not empty
+            if [ -z "$ARTIFACT_IDS" ]; then
+              echo "No artifacts to delete."
+              exit 0
+            fi
+
+            # Loop through the artifact IDs and delete them
+            for ARTIFACT_ID in $ARTIFACT_IDS; do
+              echo "Deleting artifact with ID $ARTIFACT_ID"
+              curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID"
+            done
+          else
+            echo "There are 2 or fewer artifacts. No need to delete."
           fi
 
-          # Output the artifact count so it can be used in the next steps
-          echo "::set-output name=artifact_count::$ARTIFACT_COUNT"
-
-          # Set the output for artifact list (only if you want to pass it to another step)
-          echo "::set-output name=artifacts::$ARTIFACTS"
-
-      # Step 3: Delete artifacts if there are more than 2
-      - name: Delete artifacts if more than 2 exist
-        if: ${{ steps.list-artifacts.outputs.artifact_count > 2 }}
-        run: |
-          
-          ARTIFACTS="${{ steps.list-artifacts.outputs.artifacts }}"
-          
-          # Fetch the list of artifact IDs to delete the oldest ones
-          ARTIFACT_IDS=$(echo "$ARTIFACTS" | jq -r '.artifacts | sort_by(.created_at) | .[2:] | .[].id')
-
-          # Ensure ARTIFACT_IDS is not empty
-          if [ -z "$ARTIFACT_IDS" ]; then
-            echo "No artifacts to delete."
-            exit 0
-          fi
-
-          for ARTIFACT_ID in $ARTIFACT_IDS; do
-            echo "Deleting artifact with ID $ARTIFACT_ID"
-            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID"
-          done
       # Remove this
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
