@@ -78,6 +78,7 @@ jobs:
       # Remove this - Deleting artifacts
       # List current artifacts (for debugging purposes)
       - name: List current artifacts
+        id: list-artifacts
         run: |
           # Fetch artifact details
           ARTIFACTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
