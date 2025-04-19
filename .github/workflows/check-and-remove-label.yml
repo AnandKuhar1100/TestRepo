@@ -96,7 +96,7 @@ jobs:
             echo "There are more than $THRESHOLD artifacts. Proceeding with deletion."
 
             # Fetch the artifact IDs to delete the oldest ones
-            ARTIFACT_IDS=$(echo "$ARTIFACTS" | jq -r '.artifacts | sort_by(.created_at) | .[${THRESHOLD}:] | .[].id')
+            ARTIFACT_IDS=$(echo "$ARTIFACTS" | jq -r '.artifacts | sort_by(.created_at) | .[$THRESHOLD:] | .[].id')
 
             # Ensure ARTIFACT_IDS is not empty
             if [ -z "$ARTIFACT_IDS" ]; then
