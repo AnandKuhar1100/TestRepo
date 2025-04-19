@@ -76,44 +76,44 @@ jobs:
           fi
 
       # Remove this - Deleting artifacts
-      # - name: List and delete artifacts if more than 2 exist
-      #   run: |
-      #     THRESHOLD=2
+      - name: List and delete artifacts if more than 2 exist
+        run: |
+          THRESHOLD=2
           
-      #     # Fetch artifact details from GitHub API
-      #     ARTIFACTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-      #       "https://api.github.com/repos/${{ github.repository }}/actions/artifacts")
+          # Fetch artifact details from GitHub API
+          ARTIFACTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts")
 
-      #     # Print the raw artifact list for debugging purposes
-      #     echo "Artifacts list: $ARTIFACTS"
+          # Print the raw artifact list for debugging purposes
+          echo "Artifacts list: $ARTIFACTS"
 
-      #     # Check the number of artifacts
-      #     ARTIFACT_COUNT=$(echo "$ARTIFACTS" | jq '.artifacts | length')
-      #     echo "Number of artifacts: $ARTIFACT_COUNT"
+          # Check the number of artifacts
+          ARTIFACT_COUNT=$(echo "$ARTIFACTS" | jq '.artifacts | length')
+          echo "Number of artifacts: $ARTIFACT_COUNT"
 
-      #     # If there are more than $THRESHOLD artifacts, proceed with deletion
-      #     if [ "$ARTIFACT_COUNT" -gt $THRESHOLD ]; then
-      #       echo "There are more than $THRESHOLD artifacts. Proceeding with deletion."
+          # If there are more than $THRESHOLD artifacts, proceed with deletion
+          if [ "$ARTIFACT_COUNT" -gt $THRESHOLD ]; then
+            echo "There are more than $THRESHOLD artifacts. Proceeding with deletion."
 
-      #       # Fetch the artifact IDs to delete the oldest ones
-      #       ARTIFACT_IDS=$(echo "$ARTIFACTS" | jq -r --arg threshold "$THRESHOLD" \
-      #         '.artifacts | sort_by(.created_at) | .[0:($threshold|tonumber)] | .[].id')
+            # Fetch the artifact IDs to delete the oldest ones
+            ARTIFACT_IDS=$(echo "$ARTIFACTS" | jq -r --arg threshold "$THRESHOLD" \
+              '.artifacts | sort_by(.created_at) | .[0:($threshold|tonumber)] | .[].id')
 
-      #       # Ensure ARTIFACT_IDS is not empty
-      #       if [ -z "$ARTIFACT_IDS" ]; then
-      #         echo "No artifacts to delete."
-      #         exit 0
-      #       fi
+            # Ensure ARTIFACT_IDS is not empty
+            if [ -z "$ARTIFACT_IDS" ]; then
+              echo "No artifacts to delete."
+              exit 0
+            fi
 
-      #       # Loop through the artifact IDs and delete them
-      #       for ARTIFACT_ID in $ARTIFACT_IDS; do
-      #         echo "Deleting artifact with ID $ARTIFACT_ID"
-      #         curl -X DELETE -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
-      #           "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID"
-      #       done
-      #     else
-      #       echo "There are $ARTIFACT_COUNT artifacts, which is less than or equal to the threshold of $THRESHOLD. No need to delete."
-      #     fi
+            # Loop through the artifact IDs and delete them
+            for ARTIFACT_ID in $ARTIFACT_IDS; do
+              echo "Deleting artifact with ID $ARTIFACT_ID"
+              curl -X DELETE -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+                "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID"
+            done
+          else
+            echo "There are $ARTIFACT_COUNT artifacts, which is less than or equal to the threshold of $THRESHOLD. No need to delete."
+          fi
 
       # Remove this
       - name: Upload build artifacts
