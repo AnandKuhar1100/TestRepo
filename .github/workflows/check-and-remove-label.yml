@@ -95,7 +95,7 @@ jobs:
           if [ "$ARTIFACT_COUNT" -gt $THRESHOLD ]; then
             echo "There are more than $THRESHOLD artifacts. Proceeding with deletion."
 
-            ITEMS_COUNT_TO_DELETE = ARTIFACT_COUNT - THRESHOLD
+            ITEMS_COUNT_TO_DELETE=$((ARTIFACT_COUNT > THRESHOLD ? ARTIFACT_COUNT - THRESHOLD : 0))
             echo "ITEMS_COUNT_TO_DELETE: $ITEMS_COUNT_TO_DELETE"
 
             # Fetch the artifact IDs to delete the oldest ones
