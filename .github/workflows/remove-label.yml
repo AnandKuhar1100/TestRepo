@@ -11,11 +11,10 @@ on:
     paths:
       - '**/*'  # Trigger on any change in the repository
 
-permissions:
-  issues: write
-
-jobs:
+jobs: 
   remove-label:
+    permissions:
+      contents: write
     runs-on: macos-latest
     
     steps:
