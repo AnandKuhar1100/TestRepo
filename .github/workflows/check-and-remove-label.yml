@@ -10,8 +10,9 @@ on:
       - main  # Trigger on push to the `main` branch (or your target branch)
     paths:
       - '**/*'  # Trigger on any change in the repository
-  permissions:
-    issues: write
+  
+permissions:
+  issues: write
 
 jobs:
   check-remove-label:
