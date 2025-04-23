@@ -114,7 +114,7 @@ jobs:
             # Loop through the artifact IDs and delete them
             for ARTIFACT_ID in $ARTIFACT_IDS; do
               echo "Deleting artifact with ID $ARTIFACT_ID"
-              curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              curl -X DELETE -H "Authorization: token ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}" \
                 "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID"
             done
           else
