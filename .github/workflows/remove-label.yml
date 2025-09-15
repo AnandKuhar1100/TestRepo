@@ -12,6 +12,18 @@ on:
       - '**/*'  # Trigger on any change in the repository
 
 jobs: 
+  run-fastlane-action:
+    runs-on: self-hosted
+    steps:
+      - name: Trigger Fastlane on EC2
+        uses: appleboy/jenkins-action@master
+        with:
+          url: "http://13.250.131.244"
+          user: "qa-housing"
+          token: "11285537b9334c11c92b2cc131ea399300"
+          job: "Android_Generate_coverage_report"
+          parameters: "branch=staging"
+          
   remove-label:
     permissions:
       contents: write
