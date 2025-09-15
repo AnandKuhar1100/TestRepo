@@ -15,14 +15,32 @@ jobs:
   run-fastlane-action:
     runs-on: self-hosted
     steps:
-      - name: Trigger Fastlane on EC2
-        uses: appleboy/jenkins-action@master
-        with:
-          url: "http://13.250.131.244"
-          user: "qa-housing"
-          token: "11285537b9334c11c92b2cc131ea399300"
-          job: "Android_Generate_coverage_report"
-          parameters: "branch=staging"
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Trigger Jenkins Job
+        env:
+          JENKINS_URL: "http://13.250.131.244"
+          JENKINS_USER: "qa-housing"
+          JENKINS_TOKEN: "11285537b9334c11c92b2cc131ea399300"
+          JOB_NAME: "Android_Generate_coverage_report"
+          BRANCH: "staging"
+        run: |
+          echo "Triggering Jenkins job $JOB_NAME for branch $BRANCH"
+
+          # Trigger the Jenkins job with parameters
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "${JENKINS_URL}/job/${JOB_NAME}/buildWithParameters?branch=${BRANCH}" \
+            --user "${JENKINS_USER}:${JENKINS_TOKEN}")
+
+          echo "Jenkins response HTTP code: $RESPONSE"
+
+          if [ "$RESPONSE" -ge 400 ]; then
+            echo "❌ Jenkins job trigger failed"
+            exit 1
+          else
+            echo "✅ Jenkins job triggered successfully"
+          fi
           
   remove-label:
     permissions:
