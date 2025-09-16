@@ -29,11 +29,11 @@ jobs:
     steps:
       - name: Trigger another action (ktlint-and-unit-tests)
         env:
-          GH_TOKEN: ${{ secrets.ACTIONS_LINT_UNITTEST_TOKEN }}
+          GH_TOKEN: ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}
         run: |
           echo "Triggering the 'ktlint-and-unit-tests' action"
           curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.ACTIONS_LINT_UNITTEST_TOKEN }}" \
+            -H "Authorization: Bearer ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}" \
             -H "Accept: application/vnd.github.v3+json" \
             --data '{"ref":"staging"}' \
             "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ktlint-and-unit-tests.yml/dispatches"
