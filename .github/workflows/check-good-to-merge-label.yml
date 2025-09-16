@@ -8,7 +8,7 @@ on:
 
 jobs:
   check-label:
-    if: contains(github.event.pull_request.labels.*.name, 'draft') # Remove this - only to disable/skip this test case
+    # if: contains(github.event.pull_request.labels.*.name, 'draft') # Remove this - only to disable/skip this test case
     runs-on: self-hosted
     
     steps:
