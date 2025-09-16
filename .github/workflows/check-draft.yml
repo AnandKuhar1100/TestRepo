@@ -1,14 +1,27 @@
-name: Test workflow
+name: Manual Workflow Trigger
 
 on:
   workflow_dispatch:
-  release:
-    types: [created]  
-  push:
-  
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+        - info
+        - warning
+        - debug
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: environment
+
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
-    steps: 
-      - name: Checkout
-        uses: actions/checkout@v2
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Run a script
+        run: echo "Running with log level ${{ github.event.inputs.logLevel }} in environment ${{ github.event.inputs.environment }}"
