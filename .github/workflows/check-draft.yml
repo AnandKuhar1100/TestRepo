@@ -2,20 +2,6 @@ name: Manual Workflow Trigger
 
 on:
   workflow_dispatch:
-    inputs:
-      logLevel:
-        description: 'Log level'
-        required: true
-        default: 'warning'
-        type: choice
-        options:
-        - info
-        - warning
-        - debug
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        type: environment
 
 jobs:
   build:
@@ -24,4 +10,4 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Run a script
-        run: echo "Running with log level ${{ github.event.inputs.logLevel }} in environment ${{ github.event.inputs.environment }}"
+        run: echo "Running workflow manually"
