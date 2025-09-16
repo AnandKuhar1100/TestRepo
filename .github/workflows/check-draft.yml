@@ -1,21 +1,14 @@
-name: KTLint and Unit Tests
+name: Test workflow
 
 on:
   workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to run the workflow on'
-        required: true
-        default: 'staging'
-
+  release:
+    types: [created]  
+  push:
+  
 jobs:
-  run-tests:
+  test:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Run KTLint and Unit Tests
-        run: |
-          echo "Running tests on branch ${{ github.event.inputs.branch }}"
-          # Add your test execution logic here
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v2

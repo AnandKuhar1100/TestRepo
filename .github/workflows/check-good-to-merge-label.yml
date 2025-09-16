@@ -32,6 +32,7 @@ jobs:
           GH_TOKEN: ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}
         run: |
           echo "Triggering the 'ktlint-and-unit-tests' action"
+          echo "github.repository: ${{ github.repository }}"
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}" \
             -H "Accept: application/vnd.github.v3+json" \
