@@ -1,35 +1,39 @@
-name: Check for "Good to Merge" label
+name: Trigger Action on PR Label "Good to Merge"
 
 on:
   pull_request:
+    types: [labeled]
     branches:
-      - main
-    types: [labeled]  # Trigger on PR label changes, PR opened, etc.
+      - staging
+      - prod
 
 jobs:
-  check-label:
-    # if: contains(github.event.pull_request.labels.*.name, 'draft') # Remove this - only to disable/skip this test case
-    runs-on: self-hosted
-    
+  check-good-to-merge-label:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Check for "Good to Merge" label
+      - name: Check if the latest added label is 'Good to Merge'
+        id: check_label
         run: |
-          # Fetch the PR labels
-          PR_LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels")
-
-          # Print the labels for debugging purposes
-          echo "PR labels: $PR_LABELS"
-
-          # Convert labels to lowercase and check for 'good to merge' label (case-insensitive check)
-          PR_LABELS_LOWER=$(echo "$PR_LABELS" | tr '[:upper:]' '[:lower:]')
-          
-          if [[ "$PR_LABELS_LOWER" != *"good to merge"* ]]; then
-            echo "PR does not have the 'Good to Merge' label, failing the workflow."
-            exit 1  # Fail the job to block the merge
+          echo "Checking label: ${{ github.event.label.name }}"
+          if [ "${{ github.event.label.name }}" == "Good to Merge" ]; then
+            echo "Label 'Good to Merge' detected. Triggering the next action."
           else
-            echo "PR has the 'Good to Merge' label, passing the workflow."
+            echo "Label is not 'Good to Merge'. Skipping."
+            exit 0
           fi
+
+  trigger-other-action:
+    needs: check-good-to-merge-label
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger another action (ktlint-and-unit-tests)
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}
+        run: |
+          echo "Triggering the 'ktlint-and-unit-tests' action"
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            --data '{"ref":"staging"}' \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/check-draft.yml/dispatches"
