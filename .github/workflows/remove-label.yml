@@ -1,53 +1,39 @@
-name: Remove "Good to Merge" Label
+name: Trigger Action on PR Label "Good to Merge"
 
 on:
   pull_request:
+    types: [labeled]
     branches:
-      - main  # Specify the branch you want to protect (e.g., `main`, `staging`)
-    types: [synchronize]  # Trigger on PR label changes, PR opened, etc.
-  push:
-    branches:
-      - main  # Trigger on push to the `main` branch (or your target branch)
-    paths:
-      - '**/*'  # Trigger on any change in the repository
+      - staging
+      - prod
 
-jobs: 
-  remove-label:
-    permissions:
-      contents: write
-    runs-on: macos-latest
-    
+jobs:
+  check-good-to-merge-label:
+    runs-on: ubuntu-latest
     steps:
-      # Checkout the repository
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      # For debugging purpose
-      - name: Print data
+      - name: Check if the latest added label is 'Good to Merge'
+        id: check_label
         run: |
-          # Get PR data
-          echo "github.event_name ${{ github.event_name }}"
-          echo "github.event.action ${{ github.event.action }}"
-          echo "check for label ${{ contains(github.event.pull_request.labels.*.name, 'Good to Merge') }}"
-
-      # Step 1: Remove "Good to Merge" label when a commit is pushed or PR is synchronized
-      - name: Remove "Good to Merge" label from the PR
-        if: contains(github.event.pull_request.labels.*.name, 'Good to Merge')
-        run: |
-          # Get the PR number associated with the commit
-          PR_NUMBER=${{ github.event.pull_request.number }}
-
-          echo "PR number: $PR_NUMBER"
-
-          if [ -z "$PR_NUMBER" ]; then
-            echo "No pull request found for this commit."
+          echo "Checking label: ${{ github.event.label.name }}"
+          if [ "${{ github.event.label.name }}" == "Good to Merge" ]; then
+            echo "Label 'Good to Merge' detected. Triggering the next action."
+          else
+            echo "Label is not 'Good to Merge'. Skipping."
             exit 0
           fi
 
-          echo "Found PR number: $PR_NUMBER"
-
-          # Remove the "Good to Merge" label from the PR
-          curl -s -X DELETE -H "Authorization: token ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/labels/good%20to%20merge"
-
-          echo "Removed 'Good to Merge' label from PR #$PR_NUMBER"
+  trigger-other-action:
+    needs: check-good-to-merge-label
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger another action (ktlint-and-unit-tests)
+        env:
+          GH_TOKEN: ${{ secrets.ACTIONS_LINT_UNITTEST_TOKEN }}
+        run: |
+          echo "Triggering the 'ktlint-and-unit-tests' action"
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.ACTIONS_LINT_UNITTEST_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            --data '{"ref":"staging"}' \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ktlint-and-unit-tests.yml/dispatches"
