@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   check-remove-label:
-    runs-on: macos-latest
+    runs-on: self-hosted
 
     steps:
       # Step 1: Checkout the PR branch (to avoid detached HEAD state)
