@@ -1,129 +1,39 @@
-name: Check and Remove "Good to Merge" Label
+name: Trigger Action on PR Label "Good to Merge"
 
 on:
   pull_request:
+    types: [labeled]
     branches:
-      - main  # Specify the branch you want to protect (e.g., `main`, `staging`)
-    types: [labeled]  # Trigger on PR label changes, PR opened, etc.
-  push:
-    branches:
-      - main  # Trigger on push to the `main` branch (or your target branch)
-    paths:
-      - '**/*'  # Trigger on any change in the repository
-  
-permissions:
-  issues: write
+      - staging
+      - prod
 
 jobs:
-  check-remove-label:
-    runs-on: self-hosted
-
+  check-good-to-merge-label:
+    runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout the PR branch (to avoid detached HEAD state)
-      - name: Checkout PR branch
-        uses: actions/checkout@v2
-        # with:
-        #   ref: ${{ github.head_ref }}  # Checkout the correct PR branch
-
-      # - name: Print Data
-      #   run: |
-      #     echo "Found github event name: ${{ github.event_name }}"
-      #     echo "Found github.event.action: ${{ github.event.action }}"
-
-
-      # Step 2: Remove "Good to Merge" label when a commit is pushed
-      # - name: Remove "Good to Merge" label from the PR
-      #   if: contains(github.event.pull_request.labels.*.name, 'Good to Merge')
-      #   # if: github.event_name == 'push'  # Run this step only for push events
-      #   run: |
-      #     # Get the PR associated with the commit
-      #     PR_NUMBER=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-      #       "https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" \
-      #       | jq '.[0].number')
-
-      #     if [ -z "$PR_NUMBER" ]; then
-      #       echo "No pull request found for this commit."
-      #       exit 0
-      #     fi
-
-      #     echo "Found PR number: $PR_NUMBER"
-
-      #     # Remove the "Good to Merge" label from the PR
-      #     curl -s -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-      #       "https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/labels/good%20to%20merge"
-
-      #     echo "Removed 'Good to Merge' label from PR #$PR_NUMBER"
-
-      # - name: Checkout PR branch
-      #   uses: actions/checkout@v2
-
-      # Step 3: Check for "Good to Merge" label when label is added to PR
-      - name: Check for "Good to Merge" label
-        if: github.event_name == 'pull_request' && github.event.action == 'labeled'  # Run only for PR events
+      - name: Check if the latest added label is 'Good to Merge'
+        id: check_label
         run: |
-          # Fetch the PR labels
-          PR_LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels")
-
-          # Print the labels for debugging purposes
-          echo "PR labels: $PR_LABELS"
-
-          # Convert labels to lowercase and check for 'good to merge' label (case-insensitive check)
-          PR_LABELS_LOWER=$(echo "$PR_LABELS" | tr '[:upper:]' '[:lower:]')
-
-          if [[ "$PR_LABELS_LOWER" != *"good to merge"* ]]; then
-            echo "PR does not have the 'Good to Merge' label, failing the workflow."
-            exit 1  # Fail the job to block the merge
+          echo "Checking label: ${{ github.event.label.name }}"
+          if [ "${{ github.event.label.name }}" == "Good to Merge" ]; then
+            echo "Label 'Good to Merge' detected. Triggering the next action."
           else
-            echo "PR has the 'Good to Merge' label, passing the workflow."
+            echo "Label is not 'Good to Merge'. Skipping."
+            exit 0
           fi
 
-      # Remove this - Working fine - Deleting artifacts
-      - name: List and delete artifacts if more than 2 exist
+  trigger-other-action:
+    needs: check-good-to-merge-label
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger another action (ktlint-and-unit-tests)
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}
         run: |
-          THRESHOLD=2
-          
-          # Fetch artifact details from GitHub API
-          ARTIFACTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts")
-
-          # Print the raw artifact list for debugging purposes
-          echo "Artifacts list: $ARTIFACTS"
-
-          # Check the number of artifacts
-          ARTIFACT_COUNT=$(echo "$ARTIFACTS" | jq '.artifacts | length')
-          echo "Number of artifacts: $ARTIFACT_COUNT"
-
-          # If there are more than $THRESHOLD artifacts, proceed with deletion
-          if [ "$ARTIFACT_COUNT" -gt $THRESHOLD ]; then
-            echo "There are more than $THRESHOLD artifacts. Proceeding with deletion."
-
-            ITEMS_COUNT_TO_DELETE=$((ARTIFACT_COUNT > THRESHOLD ? ARTIFACT_COUNT - THRESHOLD : 0))
-            echo "ITEMS_COUNT_TO_DELETE: $ITEMS_COUNT_TO_DELETE"
-
-            # Fetch the artifact IDs to delete the oldest ones
-            ARTIFACT_IDS=$(echo "$ARTIFACTS" | jq -r --arg threshold "$ITEMS_COUNT_TO_DELETE" \
-              '.artifacts | sort_by(.created_at) | .[0:($threshold|tonumber)] | .[].id')
-
-            # Ensure ARTIFACT_IDS is not empty
-            if [ -z "$ARTIFACT_IDS" ]; then
-              echo "No artifacts to delete."
-              exit 0
-            fi
-
-            # Loop through the artifact IDs and delete them
-            for ARTIFACT_ID in $ARTIFACT_IDS; do
-              echo "Deleting artifact with ID $ARTIFACT_ID"
-              curl -X DELETE -H "Authorization: token ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}" \
-                "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID"
-            done
-          else
-            echo "There are $ARTIFACT_COUNT artifacts, which is less than or equal to the threshold of $THRESHOLD. No need to delete."
-          fi
-
-      # Remove this (Removing artifects)
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifact  # Name of the artifact
-          path: src/views/appA/AppA.js  # Path to the directory or file you want to upload
+          echo "Triggering the 'ktlint-and-unit-tests' action"
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            --data '{"ref":"staging"}' \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/check-draft.yml/dispatches"
