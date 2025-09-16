@@ -3,29 +3,29 @@ name: Trigger Action on PR Label "Good to Merge"
 on:
   pull_request:
     types: [labeled]
-    branches:
-      - staging
-      - prod
+    # branches:
+    #   - staging
+    #   - prod
 
 jobs:
-  check-good-to-merge-label:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check if the latest added label is 'Good to Merge'
-        id: check_label
-        run: |
-          echo "Checking label: ${{ github.event.label.name }}"
-          if [ "${{ github.event.label.name }}" == "Good to Merge" ]; then
-            echo "Label 'Good to Merge' detected. Triggering the next action."
-          else
-            echo "Label is not 'Good to Merge'. Skipping."
-            exit 0
-          fi
+  # check-good-to-merge-label:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Check if the latest added label is 'Good to Merge'
+  #       id: check_label
+  #       run: |
+  #         echo "Checking label: ${{ github.event.label.name }}"
+  #         if [ "${{ github.event.label.name }}" == "Good to Merge" ]; then
+  #           echo "Label 'Good to Merge' detected. Triggering the next action."
+  #         else
+  #           echo "Label is not 'Good to Merge'. Skipping."
+  #           exit 0
+  #         fi
 
   trigger-other-action:
-    needs: check-good-to-merge-label
-    if: success()
-    runs-on: ubuntu-latest
+    # needs: check-good-to-merge-label
+    # if: success()
+    runs-on: self-hosted
     steps:
       - name: Trigger another action (ktlint-and-unit-tests)
         env:
