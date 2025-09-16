@@ -35,5 +35,5 @@ jobs:
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            --data '{"ref":"staging"}' \
+            --data '{"ref":"main"}' \
             "https://api.github.com/repos/${{ github.repository }}/actions/workflows/check-draft.yml/dispatches"
