@@ -38,3 +38,4 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             --data '{"ref":"main", "inputs": {"branch": "main"}}' \
             "https://api.github.com/repos/${{ github.repository }}/actions/workflows/check-draft.yml/dispatches"
+
