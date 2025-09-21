@@ -34,9 +34,10 @@ jobs:
           JOB_NAME="Android_Generate_coverage_report"
           TOKEN="11068328e131d27fc5aab6d7491dc3dfc2"
 
-          QUEUE_COUNT=$(curl -s -u qa-housing:${TOKEN} "https://52.221.78.153:8080/queue/api/json" | \
-            sed 's/.*"name":"\([^"]*\)".*/\1/g' | \
-            grep -c "Android_Generate_coverage_report")
+          QUEUE_COUNT=$(curl -s -u qa-housing:${TOKEN} "${JENKINS_URL}/queue/api/json" | \
+            grep -o '"name":"Android_Generate_coverage_report"' | wc -l)
+
+          echo "Queue count for Android_Generate_coverage_report: $QUEUE_COUNT"
 
           echo "Queue count: $QUEUE_COUNT"
 
