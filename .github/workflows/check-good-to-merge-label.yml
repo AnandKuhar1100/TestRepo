@@ -22,40 +22,19 @@ jobs:
   #           exit 0
   #         fi
 
-  trigger-other-action:
-    # needs: check-good-to-merge-label
-    # if: success()
+  check-jenkins-queue:
     runs-on: self-hosted
+    outputs:
+      queue_ok: ${{ steps.check_jenkins_queue.outputs.queue_ok }}
     steps:
-      - name: Trigger another action (ktlint-and-unit-tests)
-        env:
-          GH_TOKEN: ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}
+      - name: Check Jenkins Queue
+        id: check_jenkins_queue
         run: |
-          echo "Triggering the 'ktlint-and-unit-tests' action"
-          echo "github.repository: ${{ github.repository }}"
-          curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            --data '{"ref":"${{ github.head_ref }}"}' \
-            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/check-draft.yml/dispatches"
-
-      - name: Create a check run for PR
-        run: |
-          PR_SHA="${{ github.sha }}"  # Get the current commit SHA
-          CHECK_RUN_RESPONSE=$(curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}" \
-            -d '{
-              "name": "ktlint-and-unit-tests",
-              "head_sha": "'"$PR_SHA"'",
-              "status": "in_progress",
-              "output": {
-                "title": "Running Lint and Unit Tests",
-                "summary": "The workflow is running..."
-              }
-            }' \
-            "https://api.github.com/repos/${{ github.repository }}/check-runs")
-          
-          # Extract the Check Run ID
-          CHECK_RUN_ID=$(echo $CHECK_RUN_RESPONSE | jq -r '.id')
-          echo "Check Run ID: $CHECK_RUN_ID"
+          QUEUE_COUNT=$(curl -s 'http://13.250.131.244/view/Android%20Jobs/job/Android_Generate_coverage_report/queue/api/json' | jq '.items | length')
+          echo "queue_count=$QUEUE_COUNT"
+          if [ "$QUEUE_COUNT" -lt 5 ]; then
+            echo "queue_ok=true" >> $GITHUB_OUTPUT
+          else
+            echo "queue_ok=false" >> $GITHUB_OUTPUT
+          fi
 
