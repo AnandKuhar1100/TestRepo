@@ -30,7 +30,7 @@ jobs:
       - name: Check Jenkins Queue
         id: check_jenkins_queue
         run: |
-          QUEUE_COUNT=$(curl -s 'http://13.250.131.244/view/Android%20Jobs/job/Android_Generate_coverage_report/queue/api/json' | jq '.items | length')
+          QUEUE_COUNT=$(curl -s -u qa-housing:11068328e131d27fc5aab6d7491dc3dfc2 "http://your-jenkins-url/queue/api/json" | \jq '[.items[] | select(.task.name=="Android_Generate_coverage_report")] | length')
           echo "queue_count=$QUEUE_COUNT"
           if [ "$QUEUE_COUNT" -lt 5 ]; then
             echo "queue_ok=true" >> $GITHUB_OUTPUT
