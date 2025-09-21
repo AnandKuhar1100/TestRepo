@@ -30,7 +30,6 @@ jobs:
       - name: Check Jenkins Queue
         id: check_jenkins_queue
         run: |
-          # QUEUE_COUNT=$(curl -s -u qa-housing:11068328e131d27fc5aab6d7491dc3dfc2 "http://52.221.78.153:8080/queue/api/json" | --jq '[.items[] | select(.task.name=="Android_Generate_coverage_report")] | length')
           QUEUE_COUNT=$(curl -s -u qa-housing:11068328e131d27fc5aab6d7491dc3dfc2 \ "https://52.221.78.153:8080/queue/api/json" \ | jq "[.items[] | select(.task.name==\"Android_Generate_coverage_report\")] | length")
           echo "queue_count=$QUEUE_COUNT"
           if [ "$QUEUE_COUNT" -lt 5 ]; then
