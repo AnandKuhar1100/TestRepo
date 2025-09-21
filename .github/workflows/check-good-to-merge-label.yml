@@ -30,9 +30,10 @@ jobs:
       - name: Check Jenkins Queue
         id: check_jenkins_queue
         run: |
-          JENKINS_URL="https://52.221.78.153:8080"
+          # JENKINS_URL="https://52.221.78.153:8080"
+          JENKINS_URL="http://13.250.131.244"
           JOB_NAME="Android_Generate_coverage_report"
-          TOKEN="11068328e131d27fc5aab6d7491dc3dfc2"
+          TOKEN="11285537b9334c11c92b2cc131ea399300"
 
           QUEUE_COUNT=$(curl -s -u qa-housing:${TOKEN} "${JENKINS_URL}/queue/api/json" | \
             grep -o '"name":"Android_Generate_coverage_report"' | wc -l)
