@@ -34,8 +34,8 @@ jobs:
           JOB_NAME="Android_Generate_coverage_report"
           TOKEN="11068328e131d27fc5aab6d7491dc3dfc2"
 
-          QUEUE_COUNT=$(curl -s -u qa-housing:${TOKEN} "${JENKINS_URL}/queue/api/json" \
-            | grep -o "\"task\":{[^}]*\"name\":\"${JOB_NAME}\"" | wc -l)
+          QUEUE_COUNT=$(curl -s -u qa-housing:${TOKEN} "https://52.221.78.153:8080/queue/api/json" \
+            | jq '[.items[] | select(.task.name=="Android_Generate_coverage_report")] | length')
           # QUEUE_COUNT=$(curl -s -u qa-housing:11068328e131d27fc5aab6d7491dc3dfc2 \ "https://52.221.78.153:8080/queue/api/json" \ | jq "[.items[] | select(.task.name==\"Android_Generate_coverage_report\")] | length")
           echo "queue_count=$QUEUE_COUNT"
           if [ "$QUEUE_COUNT" -lt 5 ]; then
