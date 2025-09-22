@@ -44,11 +44,11 @@ jobs:
 
           echo "Creating check run with payload: $CHECK_PAYLOAD"
 
-          curl -s -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/${{ github.repository }}/check-runs \
-            -d "$CHECK_PAYLOAD"
+          # curl -s -X POST \
+          #   -H "Authorization: Bearer $GITHUB_TOKEN" \
+          #   -H "Accept: application/vnd.github+json" \
+          #   https://api.github.com/repos/${{ github.repository }}/check-runs \
+          #   -d "$CHECK_PAYLOAD"
   
   eslint-checks:
     needs: check-good-to-merge-label
