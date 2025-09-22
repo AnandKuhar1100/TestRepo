@@ -28,26 +28,26 @@ jobs:
             echo "has_label=0" >> "$GITHUB_OUTPUT"
           fi
 
-  run-fastlane-action:
-    needs: check-good-to-merge-label
-    runs-on: macos-latest
-    if: needs.check-good-to-merge-label.outputs.good_to_merge == '1'
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - name: Trigger Jenkins Job
-        run: |
-          CHECK_PAYLOAD=$(jq -n \
-              --arg name "check-draft" \
-              --arg sha "${GITHUB_SHA}" \
-              '{name: $name, head_sha: $sha, status: "in_progress"}')
+  # run-fastlane-action:
+  #   needs: check-good-to-merge-label
+  #   runs-on: macos-latest
+  #   if: needs.check-good-to-merge-label.outputs.good_to_merge == '1'
+  #   env:
+  #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #   steps:
+  #     - name: Trigger Jenkins Job
+  #       run: |
+  #         CHECK_PAYLOAD=$(jq -n \
+  #             --arg name "check-draft" \
+  #             --arg sha "${GITHUB_SHA}" \
+  #             '{name: $name, head_sha: $sha, status: "in_progress"}')
 
-          echo "Creating check run with payload: $CHECK_PAYLOAD"
+  #         echo "Creating check run with payload: $CHECK_PAYLOAD"
 
-          curl -s -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/${{ github.repository }}/check-runs \
-            -d "$CHECK_PAYLOAD"
+  #         curl -s -X POST \
+  #           -H "Authorization: Bearer $GITHUB_TOKEN" \
+  #           -H "Accept: application/vnd.github+json" \
+  #           https://api.github.com/repos/${{ github.repository }}/check-runs \
+  #           -d "$CHECK_PAYLOAD"
 
 
