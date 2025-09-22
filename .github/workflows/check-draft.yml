@@ -49,5 +49,30 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/${{ github.repository }}/check-runs \
             -d "$CHECK_PAYLOAD"
+  
+  eslint-checks:
+    needs: check-good-to-merge-label
+    runs-on: ubuntu-latest
+    if: needs.check-good-to-merge-label.outputs.good_to_merge != '1'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npx eslint . --ext .js,.jsx,.ts,.tsx
+
+      - name: Upload ESLint results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: eslint-results
 
 
