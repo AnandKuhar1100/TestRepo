@@ -38,7 +38,7 @@ jobs:
       - name: Trigger Jenkins Job
         run: |
           CHECK_PAYLOAD=$(jq -n \
-              --arg name "check-draft" \
+              --arg name "run-fastlane-action" \
               --arg sha "${GITHUB_SHA}" \
               '{name: $name, head_sha: $sha, status: "in_progress"}')
 
