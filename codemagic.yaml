@@ -17,6 +17,7 @@ workflows:
         PACKAGE_NAME: "com.locon.housing"
     triggering:
       events:
+        - push
         - pull_request_labeled
     cache:
       cache_paths:
