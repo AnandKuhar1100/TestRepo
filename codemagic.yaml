@@ -15,6 +15,9 @@ workflows:
         - File
       vars:
         PACKAGE_NAME: "com.locon.housing"
+    triggering:
+      events:
+        - pull_request_labeled
     cache:
       cache_paths:
         - ~/.gradle/caches
