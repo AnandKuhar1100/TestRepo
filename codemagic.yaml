@@ -1,0 +1,77 @@
+workflows:
+
+  native-android:
+
+    name: Native Android
+
+    max_build_duration: 120
+
+    environment:
+      xcode: 16.3
+      android_signing:
+        - debug_keystore
+      groups:
+        - Token
+        - File
+      vars:
+        PACKAGE_NAME: "com.locon.housing"
+    cache:
+      cache_paths:
+        - ~/.gradle/caches
+        # - ~/.gradle/wrapper
+        # - ~/.android/build-cache
+    scripts:
+      - name: Add .npmrc
+        script: |
+          rm -rf .npmrc
+          echo "@jcsc:registry=https://nexus.juicyscore.net/repository/npmjs/" > $CM_BUILD_DIR/.npmrc
+          echo "//nexus.juicyscore.net/repository/npmjs/:_authToken=${NPM_TOKEN}" >> $CM_BUILD_DIR/.npmrc
+      - name: Change Yarn version
+        script: |
+          corepack disable
+          npm uninstall -g yarn
+          npm install -g yarn@1.22.19
+      - name: Install npm dependencies
+        script: |
+          yarn install
+
+      - name: Set local.properties filepath
+        script: |
+          echo "$LOCAL_PROPERTIES" | base64 --decode > $CM_BUILD_DIR/android/local.properties
+          echo "sdk.dir=$ANDROID_SDK_ROOT" >> "$CM_BUILD_DIR/android/local.properties"
+
+      - name: Set google-services filepath
+        script: |
+          echo "$GOOGLE_SERVICES_BASE64" | base64 --decode > $CM_BUILD_DIR/android/app/google-services.json
+
+      - name: Set debug keystore
+        script: |
+          cat >> "$CM_BUILD_DIR/android/keystore.properties" <<EOF
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyPassword=$CM_KEY_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          storeFile=$CM_KEYSTORE_PATH
+          EOF
+
+      - name: Build Android release
+        script: |
+          npm run create:androidBundles -- --dev=false
+          cd android
+          ./gradlew assembleAlphaRelease
+
+      - name: Run unit tests
+        script: |
+          cd android
+          ./gradlew testAlphaDebugUnitTest || true
+
+      - name: Run KT lint
+        script: |
+          cd android
+          ./gradlew ktlintCheck -PignoreFailures=false --continue || true
+
+    artifacts:
+      - $CM_BUILD_DIR/android/app/build/outputs/apk/*/release/*universal-release.apk
+      - $CM_BUILD_DIR/**/build/reports/ktlint/**/*.html
+      - $CM_BUILD_DIR/**/build/test-results/test*/TEST-*.xml
+      # - $CM_BUILD_DIR/android/build/reports/ktlint/**/*.html
+      # - android/build/reports/tests/testAlphaDebugUnitTest/index.html
