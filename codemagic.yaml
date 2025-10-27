@@ -30,9 +30,9 @@ workflows:
       - name: Print data
         script: |
           echo "Event label name: $CM_PULL_REQUEST_LABEL_NAME"
-          echo "new ${github.event.label.name}"
-          echo "All labels: ${event.pull_request.labels}"
-          echo "Label name: ${event.label.name}"
+          echo github.event.label.name
+          echo event.pull_request.labels
+          echo event.label.name
       - name: Add .npmrc
         script: |
           rm -rf .npmrc
