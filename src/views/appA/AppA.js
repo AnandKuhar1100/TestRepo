@@ -45,6 +45,7 @@ function AppA() {
         <Text>This is a test project 2</Text>
         <Text>This is a test project 3</Text>
         <Text>This is a test project 4</Text>
+        <Text>This is a test project 4</Text>
       </View>
       <View style={styles.buttonContainer}>
         <TouchableOpacity
