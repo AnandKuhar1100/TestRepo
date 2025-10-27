@@ -20,7 +20,7 @@ workflows:
         - pull_request_labeled
     # when:
       # condition: event.pull_request.labels[0].name == "Good to Merge"
-      # condition: event.label.name == "Good to merge"
+      condition: event.label.name == "Good to merge"
     cache:
       cache_paths:
         - ~/.gradle/caches
@@ -30,9 +30,9 @@ workflows:
       - name: Print data
         script: |
           echo "Event label name: $CM_PULL_REQUEST_LABEL_NAME"
-          echo github.event.label.name
-          echo event.pull_request.labels
-          echo event.label.name
+          echo ${{ github.event.label.name }}
+          echo ${{ event.pull_request.labels }}
+          echo ${{ event.label.name }}
       - name: Add .npmrc
         script: |
           rm -rf .npmrc
