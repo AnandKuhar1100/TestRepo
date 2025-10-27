@@ -20,7 +20,7 @@ workflows:
         - pull_request_labeled
     when:
       # condition: event.pull_request.labels[0].name == "Good to Merge"
-      condition: github.event.label.name == "Good to merge"
+      condition: $CM_PULL_REQUEST_LABEL_NAME == "Good to merge"
     cache:
       cache_paths:
         - ~/.gradle/caches
