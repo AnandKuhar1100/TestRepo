@@ -18,17 +18,14 @@ workflows:
     triggering:
       events:
         - pull_request_labeled
+    when:
+      condition: event.pull_request.labels[0].name == "Good to Merge"
     cache:
       cache_paths:
         - ~/.gradle/caches
         # - ~/.gradle/wrapper
         # - ~/.android/build-cache
     scripts:
-      - name: Dump all environment variables
-        script: |
-          echo "✅ Dumping all environment variables..."
-          env | sort > $CM_BUILD_DIR/env_vars_dump.txt
-          cat $CM_BUILD_DIR/env_vars_dump.txt
       - name: Add .npmrc
         script: |
           rm -rf .npmrc
