@@ -28,11 +28,9 @@ workflows:
         # - ~/.android/build-cache
     scripts:
       - name: Print data
-        script: |
-          echo "Event label name: $CM_PULL_REQUEST_LABEL_NAME"
-          echo ${{ github.event.label.name }}
-          echo ${{ event.pull_request.labels }}
-          echo ${{ event.label.name }}
+        script: env
+      - name: Debug ENV
+        script: printenv
       - name: Add .npmrc
         script: |
           rm -rf .npmrc
