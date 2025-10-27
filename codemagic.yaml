@@ -27,10 +27,12 @@ workflows:
         # - ~/.gradle/wrapper
         # - ~/.android/build-cache
     scripts:
-      - name: Print data
-        script: env
+      - name: Print event payload
+        script: |
+          echo ">>> Full event JSON payload:"
+          echo "$CM_WEBHOOK_PAYLOAD_JSON"
       - name: Debug ENV
-        script: printenv
+        script: event
       - name: Add .npmrc
         script: |
           rm -rf .npmrc
