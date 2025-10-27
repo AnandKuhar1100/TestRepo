@@ -29,13 +29,10 @@ workflows:
     scripts:
       - name: Print data
         script: |
-          echo ">>> Event label name: $CM_PULL_REQUEST_LABEL_NAME"
-          echo ">>> Label names JSON: $CM_PULL_REQUEST_LABELS"
-          echo ">>> Debug environment variables:"
-          env | grep CM_PULL_REQUEST
-          # echo "Event label name: $CM_PULL_REQUEST_LABEL_NAME"
-          # echo "Label name: ${{ event.label.name }}"
-          # # echo "All labels: ${{ event.pull_request.labels }}"
+          echo "Event label name: $CM_PULL_REQUEST_LABEL_NAME"
+          echo "new ${{ github.event.label.name }}"
+          echo "All labels: ${{ event.pull_request.labels }}"
+          echo "Label name: ${{ event.label.name }}"
       - name: Add .npmrc
         script: |
           rm -rf .npmrc
