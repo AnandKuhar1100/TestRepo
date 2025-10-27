@@ -17,7 +17,6 @@ workflows:
         PACKAGE_NAME: "com.locon.housing"
     triggering:
       events:
-        - push
         - pull_request_labeled
     cache:
       cache_paths:
@@ -25,6 +24,11 @@ workflows:
         # - ~/.gradle/wrapper
         # - ~/.android/build-cache
     scripts:
+      - name: Dump all environment variables
+        script: |
+          echo "✅ Dumping all environment variables..."
+          env | sort > $CM_BUILD_DIR/env_vars_dump.txt
+          cat $CM_BUILD_DIR/env_vars_dump.txt
       - name: Add .npmrc
         script: |
           rm -rf .npmrc
