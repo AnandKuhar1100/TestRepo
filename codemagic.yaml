@@ -18,7 +18,7 @@ workflows:
     triggering:
       events:
         - pull_request_labeled
-    # when:
+    when:
       # condition: event.pull_request.labels[0].name == "Good to Merge"
       condition: event.label.name == "Good to merge"
     cache:
