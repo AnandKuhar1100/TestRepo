@@ -41,9 +41,11 @@ function AppA() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text>Welcome to App A</Text>
-        <Text>This is a test project</Text>
-        <Text>This is a test project</Text>
-        <Text>This is a test project</Text>
+        <Text>This is a test project 1</Text>
+        <Text>This is a test project 2</Text>
+        <Text>This is a test project 3</Text>
+        <Text>This is a test project 4</Text>
+        <Text>This is a test project 4</Text>
       </View>
       <View style={styles.buttonContainer}>
         <TouchableOpacity

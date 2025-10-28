@@ -22,18 +22,18 @@ jobs:
             exit 0
           fi
 
-  check-jenkins-queue:
-    runs-on: self-hosted
-    outputs:
-      queue_ok: ${{ steps.check_jenkins_queue.outputs.queue_ok }}
+  trigger-other-action:
+    needs: check-good-to-merge-label
+    if: success()
+    runs-on: ubuntu-latest
     steps:
-      - name: Check Jenkins Queue
-        id: check_jenkins_queue
+      - name: Trigger another action (ktlint-and-unit-tests)
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}
         run: |
-          QUEUE_COUNT=$(curl -s 'http://13.250.131.244/view/Android%20Jobs/job/Android_Generate_coverage_report/queue/api/json' | jq '.items | length')
-          echo "queue_count=$QUEUE_COUNT"
-          if [ "$QUEUE_COUNT" -lt 5 ]; then
-            echo "queue_ok=true" >> $GITHUB_OUTPUT
-          else
-            echo "queue_ok=false" >> $GITHUB_OUTPUT
-          fi
+          echo "Triggering the 'ktlint-and-unit-tests' action"
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.TOKEN_WITH_SPECIFIC_ACCESS }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            --data '{"ref":"staging"}' \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ktlint-and-unit-tests.yml/dispatches"

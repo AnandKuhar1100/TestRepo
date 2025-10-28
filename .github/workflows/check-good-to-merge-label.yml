@@ -1,35 +1,58 @@
-name: Check for "Good to Merge" label
+name: Trigger Action on PR Label "Good to Merge"
 
 on:
   pull_request:
-    branches:
-      - main
-    types: [labeled]  # Trigger on PR label changes, PR opened, etc.
+    types: [labeled]
+    # branches:
+    #   - staging
+    #   - prod
 
 jobs:
-  check-label:
-    if: contains(github.event.pull_request.labels.*.name, 'draft') # Remove this - only to disable/skip this test case
-    runs-on: ubuntu-latest
-    
+  # check-good-to-merge-label:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Check if the latest added label is 'Good to Merge'
+  #       id: check_label
+  #       run: |
+  #         echo "Checking label: ${{ github.event.label.name }}"
+  #         if [ "${{ github.event.label.name }}" == "Good to Merge" ]; then
+  #           echo "Label 'Good to Merge' detected. Triggering the next action."
+  #         else
+  #           echo "Label is not 'Good to Merge'. Skipping."
+  #           exit 0
+  #         fi
+
+  check-jenkins-queue:
+    runs-on: self-hosted
+    outputs:
+      queue_ok: ${{ steps.check_jenkins_queue.outputs.queue_ok }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Check for "Good to Merge" label
+      - name: Check Jenkins Queue
+        id: check_jenkins_queue
         run: |
-          # Fetch the PR labels
-          PR_LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels")
+          # JENKINS_URL="https://52.221.78.153:8080"
+          JENKINS_URL="http://13.250.131.244"
+          JOB_NAME="Android_Generate_coverage_report"
+          TOKEN="11285537b9334c11c92b2cc131ea399300"
 
-          # Print the labels for debugging purposes
-          echo "PR labels: $PR_LABELS"
+          QUEUE_COUNT=$(curl -s -u qa-housing:${TOKEN} "${JENKINS_URL}/queue/api/json" | \
+            grep -o '"name":"Android_Generate_coverage_report"' | wc -l)
 
-          # Convert labels to lowercase and check for 'good to merge' label (case-insensitive check)
-          PR_LABELS_LOWER=$(echo "$PR_LABELS" | tr '[:upper:]' '[:lower:]')
+          echo "Queue count for Android_Generate_coverage_report: $QUEUE_COUNT"
+
+          echo "Queue count: $QUEUE_COUNT"
+
+          # QUEUE_COUNT=$(curl -s -u qa-housing:${TOKEN} "${JENKINS_URL}/queue/api/json" \
+          #   | grep -o "\"task\":{[^}]*\"name\":\"${JOB_NAME}\"" | wc -l)
           
-          if [[ "$PR_LABELS_LOWER" != *"good to merge"* ]]; then
-            echo "PR does not have the 'Good to Merge' label, failing the workflow."
-            exit 1  # Fail the job to block the merge
+          # QUEUE_COUNT=$(curl -s -u qa-housing:${TOKEN} "https://52.221.78.153:8080/queue/api/json" \
+          #   | jq '[.items[] | select(.task.name=="Android_Generate_coverage_report")] | length')
+          
+          # QUEUE_COUNT=$(curl -s -u qa-housing:11068328e131d27fc5aab6d7491dc3dfc2 \ "https://52.221.78.153:8080/queue/api/json" \ | jq "[.items[] | select(.task.name==\"Android_Generate_coverage_report\")] | length")
+          echo "queue_count=$QUEUE_COUNT"
+          if [ "$QUEUE_COUNT" -lt 5 ]; then
+            echo "queue_ok=true" >> $GITHUB_OUTPUT
           else
-            echo "PR has the 'Good to Merge' label, passing the workflow."
+            echo "queue_ok=false" >> $GITHUB_OUTPUT
           fi
+

@@ -1,13 +1,77 @@
 name: Manual Workflow Trigger
 
 on:
-  workflow_dispatch:
+  pull_request:
+    types: [labeled]
+    branches:
+      - staging
+      - prod
+      - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  check-good-to-merge-label:
+    runs-on: macos-latest
+    outputs:
+      good_to_merge: ${{ steps.check_label.outputs.has_label }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Run a script
-        run: echo "Running workflow manually"
+      - name: Check if the latest added label is 'Good to Merge'
+        id: check_label
+        run: |
+          echo "Latest label: ${{ github.event.label.name }}"
+          if [ "${{ github.event.label.name }}" = "Good to Merge" ]; then
+            echo "has_label=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_label=0" >> "$GITHUB_OUTPUT"
+          fi
+
+  run-fastlane-action:
+    needs: check-good-to-merge-label
+    runs-on: macos-latest
+    permissions:
+      checks: write
+      contents: read
+    if: needs.check-good-to-merge-label.outputs.good_to_merge == '1'
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Trigger Jenkins Job
+        run: |
+          CHECK_PAYLOAD=$(jq -n \
+              --arg name "run-fastlane-action" \
+              --arg sha "${GITHUB_SHA}" \
+              '{name: $name, head_sha: $sha, status: "in_progress"}')
+
+          echo "Creating check run with payload: $CHECK_PAYLOAD"
+
+          # curl -s -X POST \
+          #   -H "Authorization: Bearer $GITHUB_TOKEN" \
+          #   -H "Accept: application/vnd.github+json" \
+          #   https://api.github.com/repos/${{ github.repository }}/check-runs \
+          #   -d "$CHECK_PAYLOAD"
+  
+  eslint-checks:
+    needs: check-good-to-merge-label
+    runs-on: ubuntu-latest
+    if: needs.check-good-to-merge-label.outputs.good_to_merge != '1'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npx eslint . --ext .js,.jsx,.ts,.tsx
+
+      - name: Upload ESLint results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: eslint-results
+
+
