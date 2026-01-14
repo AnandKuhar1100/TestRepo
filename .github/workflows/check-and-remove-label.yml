@@ -17,8 +17,8 @@ jobs:
 
     steps:
       # Step 1: Checkout the PR branch (to avoid detached HEAD state)
-      # - name: Checkout PR branch
-      #   uses: actions/checkout@v2
+      - name: Checkout PR branch
+        uses: actions/checkout@v2
         # with:
         #   ref: ${{ github.head_ref }}  # Checkout the correct PR branch
 
